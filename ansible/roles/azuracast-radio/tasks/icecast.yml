@@ -1,5 +1,31 @@
 ---
-- name: Install IceCast-KH-AC Dependencies
+- name: Download IceCast-AC Source
+  get_url:
+    url: https://github.com/AzuraCast/icecast-azuracast-custom/archive/refs/tags/{{ icecast_ac_version }}.tar.gz
+    dest: "{{ app_base }}/servers/icecast2/icecast2-ac.tar.gz"
+    force: true
+
+- name: Create Icecast Web Directory
+  file:
+    name: "/usr/local/share/icecast"
+    state: directory
+    owner: azuracast
+    group: www-data
+    mode: 0775
+
+- name: Extract IceCast-AC Source
+  unarchive:
+    src: "{{ app_base }}/servers/icecast2/icecast2-ac.tar.gz"
+    dest: "/usr/local/share/icecast"
+    remote_src: true
+    mode: "u=rwx,g=rx,o=rx"
+    owner: "azuracast"
+    group: "www-data"
+    extra_opts:
+      - "--strip-components=1"
+      - "web"
+
+- name: Install IceCast-KH Dependencies
   apt:
     name: "{{ packages }}"
     install_recommends: false
@@ -12,15 +38,15 @@
       - libcurl4-openssl-dev
       - pkg-config
 
-- name: Download IceCast-KH-AC Source
+- name: Download IceCast-KH Source
   get_url:
-    url: https://github.com/AzuraCast/icecast-kh-ac/archive/refs/tags/2.4.0-kh15-ac2.tar.gz
-    dest: "{{ app_base }}/servers/icecast2/icecast2.tar.gz"
+    url: https://github.com/karlheyes/icecast-kh/archive/refs/tags/icecast-{{ icecast_kh_version }}.tar.gz
+    dest: "{{ app_base }}/servers/icecast2/icecast2-kh.tar.gz"
     force: true
 
-- name: Extract IceCast-KH-AC Source
+- name: Extract IceCast-KH Source
   unarchive:
-    src: "{{ app_base }}/servers/icecast2/icecast2.tar.gz"
+    src: "{{ app_base }}/servers/icecast2/icecast2-kh.tar.gz"
     dest: "{{ app_base }}/servers/icecast2"
     remote_src: true
     mode: "u=rwx,g=rx,o=rx"

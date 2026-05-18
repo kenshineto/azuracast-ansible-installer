@@ -7,11 +7,14 @@
     group: www-data
     mode: 0775
 
-- name: Copy existing INI file if it exists
-  copy:
-    src: "{{ www_base }}/env.ini"
-    dest: "{{ app_base }}/env.ini"
-  ignore_errors: true
+- name: Create env file
+  template:
+    src: env.j2
+    dest: "{{ app_base }}/azuracast.env"
+    owner: azuracast
+    group: www-data
+    mode: 0644
+    force: false
 
 - name: Clear temp directory
   file:
@@ -46,20 +49,3 @@
     - "{{ app_base }}/acme/challenges"
   loop_control:
     loop_var: azuracast_config_sys_directory
-
-- name: Write environment configuration file
-  template:
-    src: env.ini.j2
-    dest: "{{ app_base }}/env.ini"
-    owner: azuracast
-    group: www-data
-    mode: 0644
-    force: false
-
-- name: Set up environment file
-  ini_file:
-    dest: "{{ app_base }}/env.ini"
-    section: "configuration"
-    option: "application_env"
-    value: "{{ app_env }}"
-    mode: 0644

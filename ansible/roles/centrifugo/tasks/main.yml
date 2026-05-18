@@ -1,0 +1,33 @@
+---
+- name: Install Centrifugo
+  apt:
+    deb: "https://github.com/centrifugal/centrifugo/releases/download/v{{ centrifugo_version }}/centrifugo_{{ centrifugo_version }}-0_{{ deb_arch }}.deb"
+
+- name: Create Centrifugo Working Directory
+  file:
+    name: "{{ app_base }}/centrifugo"
+    state: directory
+    owner: azuracast
+    group: www-data
+    mode: 0775
+
+- name: Install Centrifugo Configuration
+  template:
+    src: config.toml.j2
+    dest: "{{ app_base }}/centrifugo/config.toml"
+    force: true
+    mode: 0644
+
+- name: Install Centrifugo Supervisord conf
+  template:
+    src: supervisor.conf.j2
+    dest: /etc/supervisor/conf.d/centrifugo.conf
+    force: true
+    mode: 0644
+
+- name: Disable Centrifugo service
+  service:
+    name: "centrifugo"
+    enabled: false
+    state: stopped
+  ignore_errors: true

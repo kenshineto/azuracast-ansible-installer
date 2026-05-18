@@ -1,0 +1,26 @@
+---
+- name: Install AzuraCast Scripts
+  copy:
+    src: "{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    owner: azuracast
+    group: www-data
+    mode: 0755
+  loop:
+    - app_startup
+    - azuracast_cli
+    - azuracast_db
+    - azuracast_install
+    - azuracast_restore
+    - azuracast_update
+    - azuracast_update_blocklist
+    - docker_installer
+    - temp_cleanup
+    - uptime_wait
+
+- name: Install AzuraCast Supervisord conf
+  template:
+    src: supervisor.conf.j2
+    dest: /etc/supervisor/conf.d/startup.conf
+    force: true
+    mode: 0644

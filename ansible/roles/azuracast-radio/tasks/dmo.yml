@@ -1,0 +1,15 @@
+---
+- name: Install deb multimedia keyring
+  apt:
+    deb: "https://www.deb-multimedia.org/pool/main/d/deb-multimedia-keyring/deb-multimedia-keyring_2024.9.1_all.deb"
+
+- name: Add deb multimedia repository
+  template:
+    src: dmo.sources.j2
+    dest: /etc/apt/sources.list.d/dmo.sources
+    force: true
+    mode: 0644
+
+- name: Update APT cache
+  apt:
+    update_cache: true

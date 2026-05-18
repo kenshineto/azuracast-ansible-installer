@@ -10,12 +10,12 @@
     name: "{{ uninstall_svc_to_stop }}"
     state: stopped
   loop:
-    - "influxdb"
     - "mysql"
-    - "php7.4-fpm"
+    - "php{{ php_version }}-fpm"
     - "nginx"
     - "redis-server"
     - "supervisor"
+    - "centrifugo"
   loop_control:
     loop_var: uninstall_svc_to_stop
   ignore_errors: true
@@ -43,15 +43,6 @@
   loop_control:
     loop_var: uninstall_file_to_delete
 
-- name: Remove PPAs
-  apt_repository:
-    repo: "{{ uninstall_repo_to_delete }}"
-    state: absent
-  loop:
-    - "ppa:avsm/ppa"
-  loop_control:
-    loop_var: uninstall_repo_to_delete
-
 - name: UFW - Turn off Firewall
   ufw:
     state: disabled
@@ -65,57 +56,97 @@
     purge: true
   vars:
     packages:
-      # Radio software
+      # Icecast2
       - icecast2
-      - liquidsoap
-      - liquidsoap-plugin-*
       - libxml2
       - libxslt1-dev
       - libvorbis-dev
       - libssl-dev
       - libcurl4-openssl-dev
-      - opam
-      - libpcre3-dev
-      - libfdk-aac-dev
-      - libmad0-dev
-      - libmp3lame-dev
-      - libtag1-dev
+      - pkg-config
+
+      # LiquidSoap
+      - liquidsoap
+      - libao-dev
+      - libasound2-dev
+      - libavcodec-dev
+      - libavdevice-dev
+      - libavfilter-dev
+      - libavformat-dev
+      - libavutil-dev
       - libfaad-dev
+      - libfdk-aac-dev
       - libflac-dev
-      - libogg-dev
+      - libfreetype-dev
+      - libgd-dev
+      - libjack-dev
+      - libjpeg-dev
+      - liblo-dev
+      - libmad0-dev
+      - libmagic-dev
+      - libmp3lame-dev
       - libopus-dev
-      - m4
-      - aspcud
-      - camlp4
+      - libpng-dev
+      - libportaudio2
+      - libpulse-dev
+      - libsamplerate0-dev
+      - libsdl2-dev
+      - libsdl2-ttf-dev
+      - libsdl2-image-dev
+      - libshine-dev
+      - libsoundtouch-dev
+      - libspeex-dev
+      - libsrt-openssl-dev
+      - libswresample-dev
+      - libswscale-dev
+      - libtag1-dev
+      - libtheora-dev
+      - libtiff-dev
+      - libx11-dev
+      - libxpm-dev
+      - bubblewrap
+      - ffmpeg
+      - frei0r-plugins-dev
+      - ladspa-sdk
+      - multimedia-audio-plugins
+      - swh-plugins
+      - tap-plugins
+      - lsp-plugins-ladspa
 
-      # Supervisord
-      - supervisor
+      # Codecs
+      - vorbis-tools
+      - flac
 
-      # InfluxDB
-      - influxdb
+      # Cron
+      - cron
+      - tmpreaper
+
+      # Beanstalkd
+      - beanstalkd
+
+      # MariaDB
+      - mariadb-*
+      - python3-pymysql
 
       # Nginx
       - nginx
       - nginx-*
 
-      # PHP 7.2
-      - php7.2-*
-      - php7.4-*
-
-      # MariaDB
-      - mariadb-*
+      # PHP
+      - php-*
+      - php{{ php_version }}-*
 
       # Redis
       - redis-server
 
+      # SFTPGo
+      - sftpgo
+
+      # Supervisord
+      - supervisor
+
       # UFW Firewall
       - ufw
-
-      # Ansible itself
-      - python2.7
-      - python-pip
-      - python-mysqldb
-      - ansible
 
       # System packages
       - pwgen

@@ -1,3 +1,7 @@
+upstream centrifugo {
+    server 127.0.0.1:6020;
+}
+
 upstream php-fpm-internal {
     server unix:/var/run/php-fpm-internal.sock;
 }
@@ -11,6 +15,8 @@ server {
 
     root {{ app_base }}/www/web;
     index index.php;
+
+    server_name localhost;
 
     # Default clean URL routing
     location / {
@@ -28,6 +34,7 @@ server {
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_param IS_INTERNAL true;
         include fastcgi_params;
 
         fastcgi_read_timeout 600;
@@ -45,6 +52,14 @@ server {
 
     ssl_certificate    {{ app_base }}/acme/ssl.crt;
     ssl_certificate_key    {{ app_base }}/acme/ssl.key;
+
+    ssl_protocols TLSv1.3 TLSv1.2;
+    ssl_prefer_server_ciphers on;
+    ssl_ecdh_curve secp521r1:secp384r1;
+    ssl_ciphers EECDH+AESGCM:EECDH+AES256;
+
+    ssl_session_cache shared:TLS:2m;
+    ssl_buffer_size 4k;
 
     root {{ app_base }}/www/web;
     index index.php;
@@ -73,6 +88,13 @@ server {
         try_files $uri =404;
     }
 
+    # Websocket/SSE Now Playing Updates
+    location ~ ^/api/live/nowplaying/(\w+)$ {
+        include proxy_params;
+        proxy_pass http://centrifugo/connection/uni_$1?$args;
+    }
+
+    # Default clean URL routing
     location / {
         try_files $uri @clean_url;
     }
@@ -87,33 +109,45 @@ server {
     }
 
     location /static/uploads {
-        rewrite ^(.+)\.(?:\w+)\.(js|css|png|jpg)$ $1.$2 last;
+        rewrite ^(.+)\.(?:\w+)\.(js|css|png|jpg|webp)$ $1.$2 last;
 
-        alias /var/azuracast/uploads;
+        alias {{ app_base }}/storage/uploads";
         try_files $uri =404;
     }
 
-    location /static/dist {
+    location /static/vite_dist {
         expires 365d;
     }
-    location /static/webpack_dist {
+
+    location /static/icons {
         expires 365d;
+    }
+    location /static/img {
+        expires 7d;
     }
 
     location ~ ^/index\.php(/|$) {
+        include fastcgi_params;
+
+        fastcgi_read_timeout "1800";
+
         fastcgi_split_path_info ^(.+\.php)(/.+)$;
 
         # NOTE: You should have "cgi.fix_pathinfo = 0;" in php.ini
-        fastcgi_pass php-fpm-www;
         fastcgi_index index.php;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         fastcgi_param DOCUMENT_ROOT $realpath_root;
-        include fastcgi_params;
 
-        fastcgi_read_timeout 1800;
-        fastcgi_buffering off;
+        fastcgi_cache app;
+        fastcgi_cache_use_stale timeout updating;
 
+        fastcgi_pass php-fpm-www;
         internal;
+    }
+
+    # Return 404 for all other php files not matching the front controller
+    location ~ \.php$ {
+        return 404;
     }
 
     # deny access to .htaccess files, if Apache's document root
@@ -125,13 +159,23 @@ server {
     # Internal handlers used by the application to perform X-Accel-Redirect's for higher performance.
     location /internal/backups/ {
         internal;
+        add_header Access-Control-Allow-Origin "$upstream_http_access_control_allow_origin";
         alias {{ app_base }}/backups/;
+    }
+
+    location /internal/storage/ {
+        internal;
+        add_header Access-Control-Allow-Origin "$upstream_http_access_control_allow_origin";
+        alias {{ app_base }}/storage/;
     }
 
     location /internal/stations/ {
         internal;
+        add_header Access-Control-Allow-Origin "$upstream_http_access_control_allow_origin";
         alias {{ app_base }}/stations/;
     }
 
     include {{ app_base }}/stations/*/config/nginx.conf;
+
+    include /etc/nginx/azuracast.conf.d/*.conf;
 }

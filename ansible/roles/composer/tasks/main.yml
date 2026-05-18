@@ -1,25 +1,36 @@
 ---
 - name: Install Composer
-  shell: >-
-    curl -fsSL https://getcomposer.org/installer
-    | php -- --install-dir=/usr/bin --filename=composer
-  args:
-    warn: false
+  get_url:
+    url: "https://getcomposer.org/download/2.9.8/composer.phar"
+    dest: "/usr/bin/composer"
+    mode: "0755"
 
-- name: Deploy AzuraCast Repository (Development)
+- name: Clean out www dir
+  shell: |
+    rm -fr "{{ www_base }}/*"
+    rm -fr "{{ www_base }}/.*"
+
+- name: Deploy AzuraCast Repository
   become: true
   become_user: azuracast
-  command: >-
-    composer create-project azuracast/azuracast:dev-main . --no-dev
+  command: composer create-project azuracast/azuracast:dev-main . --no-install --no-interaction --prefer-dist --no-progress
   args:
     chdir: "{{ www_base }}"
-  when: app_env == "development"
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: "1"
 
-- name: Deploy AzuraCast Repository (Production)
+- name: Install AzuraCast dependencies
   become: true
   become_user: azuracast
-  command: >-
-    composer create-project azuracast/azuracast:dev-main .
+  command: composer update --optimize-autoloader --no-interaction --prefer-dist --no-progress
   args:
     chdir: "{{ www_base }}"
-  when: app_env == "production"
+  environment:
+    COMPOSER_ALLOW_SUPERUSER: "1"
+
+- name: Fix www ownership
+  file:
+    path: "{{ www_base }}"
+    owner: azuracast
+    group: www-data
+    recurse: true

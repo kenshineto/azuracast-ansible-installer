@@ -45,6 +45,14 @@
     backup: true
     mode: 0644
 
+- name: Add nginx global proxy params
+  template:
+    src: proxy_params.conf.j2
+    dest: /etc/nginx/proxy_params
+    force: true
+    backup: true
+    mode: 0644
+
 - name: Add app-specific nginx site
   template:
     src: default.j2

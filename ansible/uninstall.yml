@@ -2,13 +2,5 @@
 - hosts: all
   become: true
 
-  vars:
-    ansible_base: "{{ playbook_dir | dirname }}"
-    app_base: "{{ ansible_base | dirname }}"
-    www_base: "{{ app_base }}/www"
-    tmp_base: "{{ app_base }}/www_tmp"
-    app_env: "production"
-    update_revision: 1
-
   roles:
-    - "uninstall"
+    - uninstall

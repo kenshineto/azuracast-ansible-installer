@@ -2,16 +2,6 @@
 - hosts: all
   become: true
 
-  vars:
-    ansible_base: "{{ playbook_dir | dirname }}"
-    app_base: "{{ ansible_base | dirname }}"
-    www_base: "{{ app_base }}/www"
-    tmp_base: "{{ app_base }}/www_tmp"
-    app_env: "production"
-    update_mode: false
-    dev_azuracast_user_password: "azuracast"
-    dev_mysql_user_password: "azuracast"
-
   environment:
     DEBIAN_FRONTEND: noninteractive
 
@@ -20,13 +10,17 @@
     - azuracast-user
     - azuracast-config
     - azuracast-radio
+    - azuracast-startup
     - supervisord
     - nginx
     - php
+    - centrifugo
     - redis
     - beanstalkd
     - sftpgo
     - mariadb
+    - superchronic
+    - influxdb
     - ufw
     - dbip
     - composer
@@ -34,4 +28,3 @@
     - azuracast-db-install
     - azuracast-build
     - azuracast-setup
-    - azuracast-cron

@@ -1,9 +1,12 @@
 ---
 - name: Install NodeJS and NPM
-  shell: curl -L https://raw.githubusercontent.com/tj/n/master/bin/n -o n && bash n lts
-  args:
-    warn: false
-    chdir: "/tmp"
+  apt:
+    name: "{{ packages }}"
+    install_recommends: false
+  vars:
+    packages:
+      - nodejs
+      - npm
 
 - name: Set permissions for folders
   file: path="{{ item }}" state=directory owner=azuracast group=www-data mode=0744
@@ -19,7 +22,7 @@
   command: >-
     npm ci
   args:
-    chdir: "{{ www_base }}/frontend"
+    chdir: "{{ www_base }}"
 
 - name: Build AzuraCast Frontend Scripts
   become: true
@@ -27,7 +30,7 @@
   command: >-
     npm run build
   args:
-    chdir: "{{ www_base }}/frontend"
+    chdir: "{{ www_base }}"
 
 - name: Set permissions of generated frontend content
   command: >-

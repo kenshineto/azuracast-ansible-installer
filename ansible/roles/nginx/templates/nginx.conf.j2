@@ -2,7 +2,7 @@ user azuracast;
 worker_processes  auto;
 worker_rlimit_nofile 65000;
 
-pid /run/nginx.pid;
+pid /var/run/nginx.pid;
 
 include /etc/nginx/modules-enabled/*.conf;
 
@@ -12,82 +12,90 @@ events {
 }
 
 http {
-    ##
-    # Basic Settings
-    ##
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
 
-    sendfile on;
-    tcp_nopush on;
-    tcp_nodelay on;
+    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
 
+    access_log off;
+    server_tokens off;
     keepalive_timeout 65;
 
-    types_hash_max_size 2048;
-    server_tokens off;
+    sendfile on;
+
+    client_max_body_size "50M";
+    client_body_temp_path /tmp/nginx_client 1 1;
+    large_client_header_buffers 8 64k;
+    client_header_buffer_size 16k;
+
+    fastcgi_temp_path /tmp/nginx_fastcgi 1 1;
+
+    fastcgi_cache_path /tmp/nginx_cache levels=1:2 keys_zone=app:50m max_size=1g inactive=60m use_temp_path=off;
+    fastcgi_cache_key "$scheme$request_method$host$request_uri";
 
     proxy_max_temp_file_size 0;
 
-    client_max_body_size 50M;
+    map $http_x_forwarded_proto $proxy_x_forwarded_proto {
+      default $http_x_forwarded_proto;
+      ''      $scheme;
+    }
 
-    # server_names_hash_bucket_size 64;
-    # server_name_in_redirect off;
+    map $http_x_forwarded_port $proxy_x_forwarded_port {
+      default $http_x_forwarded_port;
+      ''      $server_port;
+    }
 
-    include /etc/nginx/mime.types;
-    default_type application/octet-stream;
+    map $http_upgrade $proxy_connection {
+      default upgrade;
+      '' close;
+    }
 
-    ##
-    # SSL Settings
-    ##
+    map $scheme $proxy_x_forwarded_ssl {
+      default off;
+      https on;
+    }
 
-{% if ansible_distribution_release == 'focal' %}
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers 'ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384';
-    ssl_prefer_server_ciphers off;
-{% else %}
-    ssl_protocols TLSv1 TLSv1.1 TLSv1.2; # Dropping SSLv3, ref: POODLE
-    ssl_prefer_server_ciphers on;
-{% endif %}
-
-    ##
-    # Logging Settings
-    ##
-
-    log_format hls_json escape=json '{'
-        '"msec": "$msec",'
-        '"ua": "$http_user_agent",'
-        '"ip": "$remote_addr",'
-        '"ip_xff": "$http_x_forwarded_for",'
-        '"uri": "$request_uri"'
-        '}';
-
-    access_log /var/log/nginx/access.log;
-    error_log /var/log/nginx/error.log;
-
-    ##
-    # Gzip Settings
-    ##
-
+    # Enable Gzip compression
     gzip on;
-    gzip_disable "msie6";
-    gzip_comp_level 6;
-    gzip_min_length 1100;
-    gzip_buffers 16 8k;
-    gzip_proxied any;
-    gzip_types
-        text/plain
-        text/css
-        text/js
-        text/xml
-        text/javascript
-        application/javascript
-        application/x-javascript
-        application/json
-        application/xml
-        application/xml+rss;
 
-    ##
-    # Virtual Host Configs
-    ##
+    gzip_vary on;
+    gzip_buffers 128 4k;
+
+    # Compression level (1-9)
+    gzip_comp_level 5;
+
+    # Don't compress anything under 256 bytes
+    gzip_min_length 256;
+
+    # Compress output of these MIME-types
+    gzip_types
+        application/atom+xml
+        application/javascript
+        application/json
+        application/rss+xml
+        application/vnd.ms-fontobject
+        application/x-font-ttf
+        application/x-font-opentype
+        application/x-font-truetype
+        application/x-javascript
+        application/x-web-app-manifest+json
+        application/xhtml+xml
+        application/xml
+        font/eot
+        font/opentype
+        font/otf
+        image/svg+xml
+        image/x-icon
+        image/vnd.microsoft.icon
+        text/css
+        text/plain
+        text/javascript
+        text/x-component;
+
+    # Disable gzip for bad browsers
+    gzip_disable "MSIE [1-6]\.(?!.*SV1)";
 
     include /etc/nginx/conf.d/*.conf;
     include /etc/nginx/sites-enabled/*;

@@ -8,6 +8,15 @@
   set_fact:
     mysql_user_password: "{{ prod_mysql_user_password.stdout if app_env == 'production' else dev_mysql_user_password }}"
 
+- name: Install MariaDB Ansible Hook
+  apt:
+    name: python3-pymysql
+    state: present
+    update_cache: true
+
+- name: Create new database
+  command: mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+
 - name: Add configuration
   template: src=my.cnf.j2 dest=/etc/mysql/conf.d/my.cnf owner=root group=root mode=0644
 
@@ -46,6 +55,15 @@
     mode: 0644
     force: true
 
+- name: Add root .my.cnf
+  template:
+    src: my.cnf.j2
+    dest: "{{ app_base }}/.my.cnf"
+    owner: azuracast
+    group: www-data
+    mode: 0644
+    force: true
+
 - name: Reload privilege tables
   command: >-
     mysql --defaults-extra-file=/root/.my.cnf -ne "FLUSH PRIVILEGES"
@@ -62,12 +80,11 @@
   register: azuracast_db_created
 
 - name: Set up environment file
-  ini_file:
-    dest: "{{ app_base }}/env.ini"
-    section: "configuration"
-    option: "{{ azure_db_install_env_ini.option }}"
-    value: "{{ azure_db_install_env_ini.value }}"
-    mode: 0644
+  lineinfile:
+    path: "{{ www_base }}/azuracast.env"
+    regexp: "^{{ azure_db_install_env.option }}="
+    line: "{{ azure_db_install_env.option }}={{ azure_db_install_env.value }}"
+    create: yes
   loop:
     - option: 'MYSQL_HOST'
       value: 'localhost'
@@ -80,4 +97,4 @@
     - option: 'MYSQL_PASSWORD'
       value: "{{ mysql_user_password }}"
   loop_control:
-    loop_var: azure_db_install_env_ini
+    loop_var: azure_db_install_env

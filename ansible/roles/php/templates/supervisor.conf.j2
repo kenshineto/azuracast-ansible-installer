@@ -1,28 +1,46 @@
 [program:php-fpm]
-command=/usr/sbin/php-fpm{{ php_version }} --nodaemonize --fpm-config /etc/php/8.1/fpm/php-fpm.conf
-priority=500
+command=/usr/sbin/php-fpm{{ php_version }} --nodaemonize --fpm-config /etc/php/{{ php_version }}/fpm/php-fpm.conf
+priority=300
 numprocs=1
-autostart=true
-autorestart=unexpected
+autostart=false
+autorestart=true
+
 stopasgroup=true
 killasgroup=true
+
+stdout_logfile=/proc/1/fd/1
+stdout_logfile_maxbytes=0
+stderr_logfile=/proc/1/fd/2
+stderr_logfile_maxbytes=0
 
 [program:php-nowplaying]
-command=php {{ www_base }}/bin/console azuracast:sync:nowplaying
+command=azuracast_cli azuracast:sync:nowplaying
 user=azuracast
 priority=600
 numprocs=1
-autostart=true
+autostart=false
 autorestart=true
+
 stopasgroup=true
 killasgroup=true
 
+stdout_logfile=/proc/1/fd/1
+stdout_logfile_maxbytes=0
+stderr_logfile=/proc/1/fd/2
+stderr_logfile_maxbytes=0
+
 [program:php-worker]
-command=php {{ www_base }}/bin/console queue:process --worker-name=app_worker_0
+command=azuracast_cli queue:process --worker-name=app_worker_0
 user=azuracast
 priority=600
 numprocs=1
-autostart=true
+autostart=false
 autorestart=true
+
 stopasgroup=true
 killasgroup=true
+
+stdout_logfile=/proc/1/fd/1
+stdout_logfile_maxbytes=0
+stderr_logfile=/proc/1/fd/2
+stderr_logfile_maxbytes=0

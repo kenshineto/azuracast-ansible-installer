@@ -39,6 +39,7 @@
       - libshine-dev
       - libsoundtouch-dev
       - libspeex-dev
+      - libsrt-openssl-dev
       - libswresample-dev
       - libswscale-dev
       - libtag1-dev
@@ -48,18 +49,6 @@
       - libxpm-dev
       - bubblewrap
       - ffmpeg
-
-- name: Install Focal Liquidsoap Dependencies (20.04)
-  apt:
-    name:
-      - libsrt-dev
-  when: ansible_distribution_release == 'focal'
-
-- name: Install Jammy Liquidsoap Dependencies (22.04)
-  apt:
-    name:
-      - libsrt-openssl-dev
-  when: ansible_distribution_release == 'jammy'
 
 - name: Install Optional Audio Plugins
   apt:
@@ -74,24 +63,9 @@
       - tap-plugins
       - lsp-plugins-ladspa
 
-- name: Get the DPKG Architecture
-  shell: dpkg --print-architecture
-  register: dpkg_arch
-  ignore_errors: true
-
-- name: Remove Existing Liquidsoap Packages
-  apt:
-    name: "{{ packages }}"
-    state: absent
-  vars:
-    packages:
-      - liquidsoap
-      - liquidsoap-snapshot
-  ignore_errors: true
-
 - name: Install Liquidsoap
   apt:
-    deb: "https://github.com/savonet/liquidsoap/releases/download/v2.1.3/liquidsoap_2.1.3-ubuntu-{{ ansible_distribution_release }}-1_{{ dpkg_arch.stdout_lines[0] | default('amd64') }}.deb"
+    deb: "https://github.com/savonet/liquidsoap/releases/download/v{{ liquidsoap_version }}/liquidsoap_{{ liquidsoap_version }}-debian-{{ debian_version_name }}-ocaml{{ liquidsoap_ocaml_version }}-1_{{ deb_arch }}.deb"
 
 - name: Link Liquidsoap binary
   file:
@@ -99,3 +73,23 @@
     dest: /usr/local/bin/liquidsoap
     state: link
     force: true
+
+- name: Create Liquidsoap Directory
+  file:
+    name: "{{ app_base }}/liquidsoap"
+    state: directory
+    owner: azuracast
+    group: www-data
+    mode: 0755
+
+- name: Copy Liquidsoap liqs
+  copy:
+    src: "{{ item }}"
+    dest: "{{ app_base }}/liquidsoap"
+    owner: azuracast
+    group: www-data
+    mode: 0644
+  loop:
+    - azuracast.liq
+    - crossfade.liq
+    - utilities.liq

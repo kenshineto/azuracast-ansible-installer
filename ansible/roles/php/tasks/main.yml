@@ -1,7 +1,17 @@
 ---
-- name: Add PHP PPA repository
-  apt_repository:
-    repo: "ppa:ondrej/php"
+- name: Install sury keyring
+  apt:
+    deb: "https://packages.sury.org/debsuryorg-archive-keyring.deb"
+
+- name: Add sury apt php repository
+  template:
+    src: php.sources.j2
+    dest: /etc/apt/sources.list.d/php.sources
+    force: true
+    mode: 0644
+
+- name: Update APT cache
+  apt:
     update_cache: true
 
 - name: Remove Old PHP Libraries
@@ -17,11 +27,9 @@
       - "php7.4-*"
       - "php8.0-*"
       - "php8.1-*"
+      - "php8.2-*"
+      - "php8.3-*"
   ignore_errors: true
-
-- name: Set PHP Version
-  set_fact:
-    php_version: 8.2
 
 - name: "Install PHP {{ php_version }}"
   apt:
@@ -42,6 +50,13 @@
       - "php{{ php_version }}-bcmath"      # BigInteger
       - "php{{ php_version }}-gmp"         # BigInteger and PHP-IP
       - "php{{ php_version }}-maxminddb"   # Maxmind (GeoIP) DB native ext
+
+- name: Configure PHP
+  template:
+    src: php.ini.j2
+    dest: "/etc/php/{{ php_version }}/fpm/php.ini"
+    force: true
+    mode: 0644
 
 - name: Configure PHP FPM Pool
   template:

@@ -1,13 +1,15 @@
 ---
-- name: Add SFTPGo PPA repository
-  apt_repository:
-    repo: "ppa:sftpgo/sftpgo"
-    update_cache: true
-
 - name: Install SFTPGo
   apt:
-    name: "sftpgo"
-    state: present
+    deb: "https://github.com/drakkan/sftpgo/releases/download/v{{ sftpgo_version }}/sftpgo_{{ sftpgo_version }}-1_{{ deb_arch }}.deb"
+
+- name: Create SFTPGo Working Directory
+  file:
+    name: "{{ app_base }}/sftpgo"
+    state: directory
+    owner: azuracast
+    group: www-data
+    mode: 0775
 
 - name: Configure SFTPGo
   template:

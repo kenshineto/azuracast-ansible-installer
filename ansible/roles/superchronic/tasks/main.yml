@@ -1,0 +1,20 @@
+---
+- name: Install supercronic
+  get_url:
+    url: "https://github.com/aptible/supercronic/releases/download/v{{ supercronic_version }}/supercronic-linux-{{ deb_arch }}"
+    dest: "/usr/local/bin/supercronic"
+    mode: 0755
+
+- name: Generate Cron Configuration
+  template:
+    src: azuracast_cron.j2
+    dest: "/etc/cron.d/azuracast"
+    force: true
+    mode: 0644
+
+- name: Install Cron Supervisord conf
+  template:
+    src: supervisor.conf.j2
+    dest: /etc/supervisor/conf.d/cron.conf
+    force: true
+    mode: 0644

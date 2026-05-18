@@ -1,0 +1,27 @@
+# AzuraCast directories
+app_base: "/var/azuracast"
+www_base: "{{ app_base }}/www"
+tmp_base: "{{ app_base }}/www_tmp"
+
+# AzuraCast defaults
+app_env: "production"
+update_mode: false
+
+# Debian system information
+debian_version: 13
+debian_version_name: "trixie"
+
+# Depedency Versions
+audiowaveform_version: "1.10.2"
+centrifugo_version: "6.7.2"
+icecast_ac_version: "2025-12-29"
+icecast_kh_version: "2.4.0-kh22"
+liquidsoap_ocaml_version: "4.14.2"
+liquidsoap_version: "2.4.4"
+php_version: "8.4"
+sftpgo_version: "2.7.1"
+supercronic_version: "0.2.45"
+
+# Development information
+dev_azuracast_user_password: "azuracast"
+dev_mysql_user_password: "azuracast"
