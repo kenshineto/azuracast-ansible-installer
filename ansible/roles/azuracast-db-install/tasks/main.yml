@@ -81,7 +81,7 @@
 
 - name: Set up environment file
   lineinfile:
-    path: "{{ www_base }}/azuracast.env"
+    path: "{{ app_base }}/azuracast.env"
     regexp: "^{{ azure_db_install_env.option }}="
     line: "{{ azure_db_install_env.option }}={{ azure_db_install_env.value }}"
     create: yes

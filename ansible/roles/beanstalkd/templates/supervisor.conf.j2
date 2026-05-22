@@ -1,11 +1,11 @@
 [program:beanstalkd]
-command=beanstalkd -p 11300 -z 262140
+command=/usr/bin/beanstalkd -p 11300 -z 262140
 user=azuracast
 numprocs=1
 autostart=false
 autorestart=true
 
-stdout_logfile=/var/azuracast/www_tmp/service_beanstalkd.log
+stdout_logfile={{ app_base }}/www_tmp/service_beanstalkd.log
 stdout_logfile_maxbytes=5MB
 stdout_logfile_backups=5
 redirect_stderr=true

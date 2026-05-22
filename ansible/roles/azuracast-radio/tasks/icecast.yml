@@ -16,14 +16,14 @@
 - name: Extract IceCast-AC Source
   unarchive:
     src: "{{ app_base }}/servers/icecast2/icecast2-ac.tar.gz"
-    dest: "/usr/local/share/icecast"
+    dest: "/usr/local/share/icecast/web"
     remote_src: true
     mode: "u=rwx,g=rx,o=rx"
     owner: "azuracast"
     group: "www-data"
     extra_opts:
       - "--strip-components=1"
-      - "web"
+      - "icecast-azuracast-custom-{{ icecast_ac_version }}/web"
 
 - name: Install IceCast-KH Dependencies
   apt:

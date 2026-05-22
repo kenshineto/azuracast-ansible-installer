@@ -42,3 +42,9 @@
   loop_control:
     loop_var: azuracast_build_perm_command
   # Note: Don't add warn: false here, it's incompatible with the earlier Ansibles used in 16.04/18.04.
+
+- name: Link env file from root
+  file:
+    src: "{{ app_base }}/azuracast.env"
+    dest: "{{ www_base }}/azuracast.env"
+    state: link

@@ -16,7 +16,7 @@
   become: true
   become_user: azuracast
   shell: >-
-    azuracast_cli azuracast:config:migrate
+    azuracast_cli azuracast:setup:migrate
   when: update_mode|bool
 
 - name: Run AzuraCast Setup (Update Mode)

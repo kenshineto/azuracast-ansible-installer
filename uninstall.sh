@@ -20,7 +20,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "  rm -rfv /etc/mysql /var/lib/mysql"
     echo " "
     echo "To remove AzuraCast station data, run:"
-    echo "  rm -rf /var/azuracast/stations"
+    echo "  rm -rf {{ app_base }}/stations"
     echo " "
     echo "If moving to Docker, you can remove every file in this folder except docker-compose.yml."
     echo "Thanks for using AzuraCast!"

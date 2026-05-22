@@ -14,7 +14,6 @@
     - azuracast_restore
     - azuracast_update
     - azuracast_update_blocklist
-    - docker_installer
     - temp_cleanup
     - uptime_wait
 

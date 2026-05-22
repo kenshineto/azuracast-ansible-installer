@@ -66,7 +66,7 @@
   "data_provider": {
     "driver": "bolt",
     "name": "sftpgo.db",
-    "users_base_dir": "/var/azuracast/stations",
+    "users_base_dir": "{{ app_base }}/stations",
     "external_auth_hook": "http://localhost:6010/api/internal/sftp-auth",
     "external_auth_scope": 0,
     "auto_backup": {
